@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Autoevaluación · CEINAR</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&display=swap">
+<link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+
+<header class="cabecera">
+  <div class="envoltura">
+    <!-- Logos: guarda los archivos en assets/ con estos nombres. Si no existen, el recuadro se oculta solo. -->
+    <div class="marcas">
+      <span class="logo-chip"><img src="assets/logo-ceinar.png" alt="Logo de la Institución Educativa CEINAR" onerror="this.parentNode.remove()"></span>
+      <span class="logo-chip"><img src="assets/logo-enpcs.png" alt="Logo del blog EnPCs" onerror="this.parentNode.remove()"></span>
+    </div>
+    <h1>Autoevaluación</h1>
+    <p class="quien"><strong id="txtInstitucion">Institución Educativa CEINAR</strong><br>Docente <span id="txtDocente">Arnold Torres Barón</span></p>
+  </div>
+</header>
+
+<main>
+  <div class="envoltura">
+
+    <ol class="pasos" id="pasos" aria-label="Pasos">
+      <li id="p1" class="actual"><span class="n">1</span>Ingresa</li>
+      <li id="p2"><span class="n">2</span>Elige asignatura</li>
+      <li id="p3"><span class="n">3</span>Revisa tus intentos</li>
+    </ol>
+
+    <noscript><div class="error">Esta página necesita JavaScript. Actívalo en tu navegador para continuar.</div></noscript>
+
+    <!-- 1. INGRESO -->
+    <section class="panel" id="vistaLogin" aria-labelledby="tLogin">
+      <h2 id="tLogin" tabindex="-1">Ingresa con tu documento</h2>
+      <p class="lead">Aquí presentas la autoevaluación de tus asignaturas. Cada asignatura tiene un número limitado de intentos y, si alcanzas la nota mínima antes de usarlos todos, ya no necesitas más.</p>
+      <form id="formLogin" novalidate>
+        <label class="campo" for="doc">Número de documento de identidad
+          <span class="ayuda" style="display:block">Solo números, sin puntos ni espacios.</span>
+        </label>
+        <input id="doc" name="doc" type="tel" inputmode="numeric" autocomplete="off" maxlength="14" aria-describedby="errLogin">
+        <div class="error" id="errLogin" role="alert" hidden></div>
+        <button class="boton lleno" id="btnIngresar" type="submit">Ingresar</button>
+      </form>
+      <p class="pie">Usamos tu documento solo para identificarte y registrar tus intentos. Tus datos no se publican.</p>
+    </section>
+
+    <!-- 2. ASIGNATURAS -->
+    <section class="panel" id="vistaMaterias" aria-labelledby="tMaterias" hidden>
+      <div class="barra">
+        <p class="hola" id="hola"></p>
+        <button class="enlace" type="button" id="btnSalir1">Salir</button>
+      </div>
+      <h2 id="tMaterias" tabindex="-1">Elige la asignatura</h2>
+      <p class="lead" id="leadMaterias"></p>
+      <div id="bloqueDocente" hidden>
+        <div class="docente-nota">
+          <strong>Modo docente.</strong> Puedes probar cualquier asignatura con intentos ilimitados; no se escribe nota en la lista de estudiantes.
+          <label class="campo" for="selFranja" style="margin-top:12px">Grados que quieres probar</label>
+          <select id="selFranja"></select>
+        </div>
+      </div>
+      <ul class="lista-materias" id="listaMaterias"></ul>
+    </section>
+
+    <!-- 3. ESTADO DE INTENTOS -->
+    <section class="panel" id="vistaEstado" aria-labelledby="tEstado" hidden>
+      <div class="barra">
+        <button class="enlace" type="button" id="btnVolver">Volver a las asignaturas</button>
+        <button class="enlace" type="button" id="btnSalir2">Salir</button>
+      </div>
+      <h2 id="tEstado" tabindex="-1"></h2>
+      <p class="lead" id="subEstado"></p>
+      <p class="cargando" id="cargando" role="status" hidden>Consultando tus intentos…</p>
+
+      <div id="contenidoEstado" hidden>
+        <div class="nota-grande"><span class="valor" id="valNota">—</span><span class="de" id="deNota"></span></div>
+        <div class="regla" id="regla" role="img">
+          <div class="pista">
+            <div class="relleno" id="relleno"></div>
+            <div class="minimo" id="marcaMin"><span id="txtMin"></span></div>
+          </div>
+          <div class="marcas-regla" aria-hidden="true"></div>
+        </div>
+        <div class="intentos" id="intentos"></div>
+        <div class="aviso" id="aviso" role="status"><h3 id="avisoT"></h3><p id="avisoP"></p></div>
+        <div class="acciones" id="acciones"><button class="boton lleno" type="button" id="btnComenzar"></button></div>
+        <p class="error" id="errEstado" role="alert" hidden></p>
+      </div>
+    </section>
+
+    <p class="pie" style="text-align:left">Si tienes problemas para ingresar, habla con tu docente.</p>
+  </div>
+</main>
+
+<script src="config.js"></script>
+<script src="api.js"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var C = window.CONFIG || {};
+  $('txtInstitucion').textContent = C.INSTITUCION || '';
+  $('txtDocente').textContent = C.DOCENTE || '';
+
+  var GLIFOS = {
+    informatica: '<svg class="glifo" viewBox="0 0 56 56" fill="none" aria-hidden="true"><rect x="6" y="9" width="44" height="30" rx="4" stroke="currentColor" stroke-width="3"/><path d="M20 49h16M28 39v10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M17 21l6 5-6 5M28 31h9" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    estadistica: '<svg class="glifo" viewBox="0 0 56 56" fill="none" aria-hidden="true"><path d="M8 48h42" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><rect x="11" y="30" width="9" height="14" rx="2" fill="currentColor"/><rect x="24" y="14" width="9" height="30" rx="2" fill="currentColor"/><rect x="37" y="23" width="9" height="21" rx="2" fill="currentColor"/></svg>',
+    artes: '<svg class="glifo" viewBox="0 0 56 56" fill="none" aria-hidden="true"><circle cx="21" cy="22" r="12" stroke="currentColor" stroke-width="3"/><circle cx="35" cy="22" r="12" stroke="currentColor" stroke-width="3"/><circle cx="28" cy="34" r="12" stroke="currentColor" stroke-width="3"/></svg>'
+  };
+  var MATERIAS = [
+    { id: 'informatica', nombre: 'Informática' },
+    { id: 'estadistica', nombre: 'Estadística' },
+    { id: 'artes', nombre: 'Artes Aplicadas' }
+  ];
+  var S = null;          // sesión actual
+  var materiaActual = null, estadoActual = null;
+
+  /* ---------- navegación entre vistas ---------- */
+  function ver(vista, paso, foco) {
+    ['vistaLogin', 'vistaMaterias', 'vistaEstado'].forEach(function (v) { $(v).hidden = (v !== vista); });
+    [1, 2, 3].forEach(function (n) {
+      var li = $('p' + n);
+      li.className = n < paso ? 'hecho' : (n === paso ? 'actual' : '');
+      if (n === paso) li.setAttribute('aria-current', 'step'); else li.removeAttribute('aria-current');
+    });
+    if (foco) { var h = $(foco); if (h) h.focus({ preventScroll: false }); }
+  }
+  function mostrarError(el, msg) { el.textContent = msg; el.hidden = !msg; }
+  function salir(mensaje) {
+    Api.borrarSesion(); S = null; materiaActual = null; estadoActual = null;
+    $('doc').value = '';
+    mostrarError($('errLogin'), mensaje || '');
+    ver('vistaLogin', 1, mensaje ? null : 'tLogin');
+    if (mensaje) $('doc').focus();
+  }
+  function sesionExpirada() { salir('Tu sesión expiró. Ingresa de nuevo con tu documento.'); }
+
+  /* ---------- 1. login ---------- */
+  $('formLogin').addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    var doc = $('doc').value.replace(/\D/g, '');
+    if (doc.length < 5) {
+      mostrarError($('errLogin'), 'Escribe tu número de documento solo con números, sin puntos ni espacios.');
+      $('doc').focus(); return;
+    }
+    mostrarError($('errLogin'), '');
+    var b = $('btnIngresar'); b.disabled = true; b.textContent = 'Verificando…';
+    Api.llamar('login', { documento: doc }).then(function (r) {
+      b.disabled = false; b.textContent = 'Ingresar';
+      if (!r.ok) { mostrarError($('errLogin'), r.mensaje || 'No se pudo ingresar.'); $('doc').focus(); return; }
+      S = {
+        token: r.token, nombre: r.persona.nombre, grupo: r.persona.grupo, rol: r.persona.rol,
+        director: r.persona.director, franja: r.persona.franja, franjaElegida: r.persona.franja,
+        periodo: r.periodo, notaMinima: r.notaMinima, escala: r.escala, maxIntentos: r.maxIntentos,
+        asignaturas: r.asignaturas.map(function (a) { return a.id; }), franjas: r.franjas || null
+      };
+      $('doc').value = '';
+      Api.guardarSesion(S);
+      pintarMaterias();
+    });
+  });
+
+  /* ---------- 2. asignaturas ---------- */
+  function pintarMaterias() {
+    var esDoc = S.rol === 'Docente';
+    var primer = S.nombre.split(' ')[0];
+    $('hola').innerHTML = '';
+    var st = document.createElement('strong'); st.textContent = S.nombre;
+    $('hola').appendChild(st);
+    $('hola').appendChild(document.createTextNode(esDoc ? ', docente' : ', grupo ' + S.grupo));
+    $('leadMaterias').textContent = esDoc
+      ? 'Periodo ' + S.periodo.replace('P', '') + '. Elige una asignatura para revisar la autoevaluación.'
+      : 'Periodo ' + S.periodo.replace('P', '') + '. Estas son las autoevaluaciones habilitadas para ti.';
+
+    $('bloqueDocente').hidden = !esDoc;
+    if (esDoc && !$('selFranja').options.length) {
+      S.franjas.forEach(function (f) {
+        var o = document.createElement('option'); o.value = f; o.textContent = f.replace('-', '° a ') + '°';
+        $('selFranja').appendChild(o);
+      });
+    }
+    if (esDoc) $('selFranja').value = S.franjaElegida || S.franja || S.franjas[0];
+
+    var ul = $('listaMaterias'); ul.innerHTML = '';
+    MATERIAS.forEach(function (m) {
+      var habilitada = S.asignaturas.indexOf(m.id) >= 0;
+      var li = document.createElement('li');
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'materia'; b.disabled = !habilitada;
+      b.innerHTML = GLIFOS[m.id] + '<span><span class="nombre"></span><span class="nota-corta"></span></span><span class="ir"></span>';
+      b.querySelector('.nombre').textContent = m.nombre;
+      b.querySelector('.nota-corta').textContent = habilitada ? 'Ver mis intentos' : 'No estás inscrito en esta asignatura';
+      b.querySelector('.ir').textContent = habilitada ? 'Elegir' : '';
+      if (habilitada) b.addEventListener('click', function () { abrirMateria(m); });
+      li.appendChild(b); ul.appendChild(li);
+    });
+    ver('vistaMaterias', 2, 'tMaterias');
+  }
+  $('selFranja').addEventListener('change', function () { S.franjaElegida = $('selFranja').value; Api.guardarSesion(S); });
+
+  /* ---------- 3. estado ---------- */
+  function abrirMateria(m) {
+    materiaActual = m;
+    $('tEstado').textContent = m.nombre;
+    $('subEstado').textContent = 'Periodo ' + S.periodo.replace('P', '');
+    $('contenidoEstado').hidden = true; mostrarError($('errEstado'), '');
+    $('cargando').hidden = false;
+    ver('vistaEstado', 3, 'tEstado');
+    Api.llamar('estado', { token: S.token, asignatura: m.id, franja: S.rol === 'Docente' ? S.franjaElegida : undefined })
+      .then(function (e) {
+        $('cargando').hidden = true;
+        if (!e.ok) {
+          if (e.codigo === 'SESION_EXPIRADA') return sesionExpirada();
+          $('contenidoEstado').hidden = true;
+          mostrarError($('errEstado'), e.mensaje || 'No se pudo consultar el estado.');
+          return;
+        }
+        estadoActual = e; pintarEstado(e);
+      });
+  }
+
+  function plural(n, uno, varios) { return n === 1 ? uno : varios; }
+
+  function pintarEstado(e) {
+    var N = Api.nota, esc = e.escala, min = e.notaMinima, max = e.maxIntentos;
+    var tieneNota = e.mejorNota !== null && e.mejorNota !== undefined;
+
+    $('valNota').textContent = tieneNota ? N(e.mejorNota) : '—';
+    $('deNota').textContent = tieneNota ? 'de ' + N(esc) + ', tu mejor nota' : 'Todavía no tienes nota';
+    var regla = $('regla');
+    regla.className = 'regla' + (e.aprobado ? ' ok' : '');
+    regla.setAttribute('aria-label', (tieneNota ? 'Tu mejor nota es ' + N(e.mejorNota) + ' de ' + N(esc) : 'Todavía no tienes nota') +
+      '. La nota mínima para aprobar es ' + N(min) + '.');
+    $('marcaMin').style.left = (100 * min / esc) + '%';
+    $('txtMin').textContent = 'Mínimo ' + N(min);
+    var marcas = regla.querySelector('.marcas-regla'); marcas.innerHTML = '';
+    for (var i = 0; i <= esc; i++) { var s = document.createElement('span'); s.textContent = i; s.style.left = (100 * i / esc) + '%'; marcas.appendChild(s); }
+    $('relleno').style.width = '0';
+    requestAnimationFrame(function () { requestAnimationFrame(function () {
+      $('relleno').style.width = tieneNota ? Math.min(100, 100 * e.mejorNota / esc) + '%' : '0';
+    }); });
+
+    // fichas de intentos
+    var cont = $('intentos'); cont.innerHTML = '';
+    if (e.ilimitado) {
+      var t0 = document.createElement('span'); t0.className = 'texto'; t0.innerHTML = '<strong>Intentos ilimitados</strong> en modo docente'; cont.appendChild(t0);
+    } else {
+      for (var k = 1; k <= max; k++) {
+        var f = document.createElement('span'); f.className = 'ficha' + (k <= e.usados ? ' usada' : ''); f.textContent = k;
+        f.setAttribute('aria-hidden', 'true'); cont.appendChild(f);
+      }
+      var t = document.createElement('span'); t.className = 'texto';
+      var strong = document.createElement('strong'); strong.textContent = 'Usaste ' + e.usados + ' de ' + max;
+      t.appendChild(strong); t.appendChild(document.createTextNode(' ' + plural(max, 'intento', 'intentos')));
+      cont.appendChild(t);
+    }
+
+    // mensaje y botón
+    var av = $('aviso'), btn = $('btnComenzar'), tit = $('avisoT'), p = $('avisoP');
+    btn.hidden = false; btn.disabled = false;
+    if (!e.disponible) {
+      av.className = 'aviso neutro'; tit.textContent = 'Todavía no está publicada';
+      p.textContent = 'La autoevaluación de esta asignatura para tus grados aún no está disponible. Vuelve a intentarlo más tarde o pregunta a tu docente.';
+      btn.hidden = true;
+    } else if (e.motivo === 'aprobado') {
+      av.className = 'aviso ok'; tit.textContent = 'Ya aprobaste esta autoevaluación';
+      p.textContent = 'Obtuviste ' + N(e.mejorNota) + ' de ' + N(esc) + ' en el intento ' + e.mejorIntento +
+        '. Con esa nota ya no necesitas más intentos.';
+      btn.hidden = true;
+    } else if (e.motivo === 'agotado') {
+      av.className = 'aviso alerta'; tit.textContent = 'Usaste todos tus intentos';
+      p.textContent = (tieneNota ? 'Tu mejor nota fue ' + N(e.mejorNota) + ' de ' + N(esc) + '. ' : '') +
+        'Si necesitas otra oportunidad, habla con tu docente.';
+      btn.hidden = true;
+    } else if (e.ilimitado) {
+      av.className = 'aviso'; tit.textContent = 'Prueba la autoevaluación';
+      p.textContent = 'Cada intento queda registrado con el rol Docente. La nota mínima para aprobar es ' + N(min) + ' de ' + N(esc) + '.';
+      btn.textContent = 'Comenzar prueba';
+    } else {
+      var ultimo = e.restantes === 1;
+      av.className = 'aviso' + (ultimo ? ' alerta' : '');
+      tit.textContent = ultimo ? 'Este es tu último intento' : 'Tienes ' + e.restantes + ' ' + plural(e.restantes, 'intento disponible', 'intentos disponibles');
+      p.textContent = 'Necesitas ' + N(min) + ' de ' + N(esc) + ' para aprobar. El intento se cuenta desde que comienzas, aunque cierres la página.';
+      btn.textContent = 'Comenzar intento ' + (e.usados + 1) + ' de ' + max;
+    }
+    $('acciones').hidden = btn.hidden;
+    $('contenidoEstado').hidden = false;
+  }
+
+  $('btnComenzar').addEventListener('click', function () {
+    if (!materiaActual || !estadoActual) return;
+    S.asignatura = materiaActual.id;
+    S.artefactoId = estadoActual.artefactoId;
+    if (!Api.guardarSesion(S)) {
+      mostrarError($('errEstado'), 'Tu navegador bloquea el almacenamiento de la sesión. Prueba abrir la página en una pestaña nueva, fuera del blog.');
+      return;
+    }
+    window.location.href = (C.RUTA_ARTEFACTOS || 'artefactos/') + estadoActual.artefactoId.toLowerCase() + '.html';
+  });
+
+  $('btnVolver').addEventListener('click', function () { pintarMaterias(); });
+  $('btnSalir1').addEventListener('click', function () { salir(''); });
+  $('btnSalir2').addEventListener('click', function () { salir(''); });
+
+  /* ---------- arranque: si ya hay sesión (p. ej. al volver de un artefacto) ---------- */
+  var previa = Api.leerSesion();
+  if (previa && previa.token && previa.asignaturas) { S = previa; pintarMaterias(); } else { ver('vistaLogin', 1, null); }
+})();
+</script>
+</body>
+</html>
