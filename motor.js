@@ -360,7 +360,7 @@
         Array.prototype.forEach.call(fs.querySelectorAll('.opcion'), function (x) { x.classList.toggle('sel', x === lab); });
         mostrarBorrar(); actualizarProgreso();
       });
-      lab.appendChild(inp); lab.appendChild(el('span', 'letra', o.k));
+      lab.appendChild(inp); lab.appendChild(el('span', 'letra', o.l || o.k));
       var tx = el('span', 'txt'); escribirTexto(tx, o.t); lab.appendChild(tx);
       fs.appendChild(lab);
     });
@@ -472,7 +472,7 @@
       var ul = el('ul', 'rev-lista');
       p.opciones.forEach(function (o) {
         var cls = 'rev-opc' + (o.k === ok ? ' correcta' : (o.k === mia ? ' mala' : ''));
-        var li = el('li', cls); li.appendChild(el('span', 'letra', o.k));
+        var li = el('li', cls); li.appendChild(el('span', 'letra', o.l || o.k));
         var d = el('div'); var tx = el('span', 'txt'); escribirTexto(tx, o.t); d.appendChild(tx);
         if (o.k === ok && o.k === mia) d.appendChild(el('span', 'marca', 'Tu respuesta, correcta'));
         else if (o.k === ok) d.appendChild(el('span', 'marca', 'Respuesta correcta'));
