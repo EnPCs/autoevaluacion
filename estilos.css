@@ -173,3 +173,8 @@ input:focus, select:focus { border-color: var(--brand); outline: none; box-shado
 .acciones { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 22px; }
 .acciones .boton.lleno { margin-top: 0; width: auto; flex: 1 1 260px; }
 .cargando { margin-top: 24px; color: var(--ink-soft); }
+
+/* ---------- título centrado entre los dos logos ---------- */
+.fila-titulo { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+.cabecera .fila-titulo h1 { flex: 1; text-align: center; margin: 0; font-size: clamp(26px, 6.4vw, 50px); line-height: 1.1; }
+@media (max-width: 520px) { .fila-titulo { gap: 8px; } .logo-chip { width: 46px; height: 46px; padding: 4px; } }

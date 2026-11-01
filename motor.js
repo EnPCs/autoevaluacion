@@ -66,8 +66,7 @@
       '<div class="medidor" aria-hidden="true"><div id="bMedidor"></div></div>' +
     '</div>' +
     '<header class="cabecera compacta"><div class="envoltura">' +
-      '<div class="marcas" id="marcas"></div>' +
-      '<h1 id="hTitulo"></h1><p class="quien" id="hSub"></p>' +
+      '<div class="fila-titulo" id="filaTitulo"><h1 id="hTitulo"></h1></div><p class="quien" id="hSub"></p>' +
     '</div></header>' +
     '<main><div class="envoltura">' +
 
@@ -141,7 +140,7 @@
     quien.appendChild(el('span', 'et', ES_DOC ? 'Docente' : 'Estudiante'));
     quien.appendChild(document.createTextNode(' ' + (S && S.nombre ? S.nombre : '') + (S && S.grupo && !ES_DOC ? ' · Grupo ' + S.grupo : '')));
     $('hSub').parentNode.appendChild(quien);
-    Api.pintarLogos($('marcas'), '../');
+    Api.pintarLogos($('filaTitulo'), '../');
     $('bMateria').textContent = A.titulo + ', periodo ' + A.periodo;
 
     $('btnIniciar').addEventListener('click', onIniciar);
@@ -211,6 +210,9 @@
         ? 'Al terminar verás tu nota y tu resultado por tema. Las respuestas correctas se muestran cuando apruebas o usas todos tus intentos.'
         : 'Al terminar verás tu nota y tu resultado por tema. Las respuestas correctas no se muestran en tu grado.'
     ];
+    if (e.fechaLimite && !e.ilimitado) {
+      items.splice(3, 0, 'Puedes iniciar tu intento hasta el ' + Api.fechaLarga(e.fechaLimite) + ' (inclusive). Quien ya empezó puede terminarlo.');
+    }
     if (e.segundosPorPregunta > 0) {
       items.splice(3, 0, 'Cada pregunta tiene ' + e.segundosPorPregunta + ' segundos. Cuando el tiempo se acaba, pasas a la siguiente y no puedes volver a la anterior.');
     }
@@ -254,7 +256,7 @@
     var respondidas = Object.keys(intento.respuestas).length, total = intento.preguntas.length, btn = $('btnIniciar');
     $('tIntro').textContent = 'Tienes un intento en curso';
     estado = { ilimitado: intento.ilimitado, usados: intento.numero, maxIntentos: intento.maxIntentos,
-               notaMinima: intento.notaMinima, escala: intento.escala, verClave: intento.verClave, segundosPorPregunta: intento.seg || 0 };
+               notaMinima: intento.notaMinima, escala: intento.escala, verClave: intento.verClave, segundosPorPregunta: intento.seg || 0, fechaLimite: intento.fechaLimite || '' };
     reglas(estado); fichas($('introIntentos'), estado);
     $('introAviso').className = 'aviso';
     $('introAvisoT').textContent = 'Intento ' + intento.numero + ': ' + respondidas + ' de ' + total + ' respondidas';
@@ -282,6 +284,7 @@
         intento = {
           artefactoId: A.id, dueno: DUENO, intentoId: r.intentoId, numero: r.numeroIntento, maxIntentos: r.maxIntentos,
           ilimitado: !!r.ilimitado, preguntas: r.preguntas, respuestas: {}, actual: 0, inicioMs: Date.now(),
+          fechaLimite: r.fechaLimite || estado.fechaLimite || '',
           seg: r.segundosPorPregunta !== undefined ? Number(r.segundosPorPregunta) || 0 : (estado.segundosPorPregunta || 0), ini: Date.now(), cerradas: {},
           notaMinima: estado.notaMinima, escala: estado.escala, verClave: r.verClave !== undefined ? !!r.verClave : !!estado.verClave
         };

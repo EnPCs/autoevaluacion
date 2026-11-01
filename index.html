@@ -14,8 +14,7 @@
 
 <header class="cabecera">
   <div class="envoltura">
-    <div class="marcas" id="marcas"></div>
-    <h1>Autoevaluación</h1>
+    <div class="fila-titulo" id="filaTitulo"><h1>Autoevaluación</h1></div>
     <p class="quien"><strong id="txtInstitucion">Institución Educativa CEINAR</strong><br>Docente: <span id="txtDocente">Arnold Torres B.</span><br><span id="lineaEstudiante" hidden>Estudiante: <strong id="txtEstudiante"></strong><span id="txtGrupo"></span></span></p>
   </div>
 </header>
@@ -106,7 +105,7 @@
     var p = String(n || '').trim().split(/\s+/);
     return p.length >= 3 ? p.slice(0, -1).join(' ') + ' ' + p[p.length - 1].charAt(0).toUpperCase() + '.' : p.join(' ');
   })(C.DOCENTE);
-  Api.pintarLogos($('marcas'), '');
+  Api.pintarLogos($('filaTitulo'), '');
 
   var GLIFOS = {
     informatica: '<svg class="glifo" viewBox="0 0 56 56" fill="none" aria-hidden="true"><rect x="6" y="9" width="44" height="30" rx="4" stroke="currentColor" stroke-width="3"/><path d="M20 49h16M28 39v10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M17 21l6 5-6 5M28 31h9" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -279,6 +278,11 @@
       p.textContent = 'Obtuviste ' + N(e.mejorNota) + ' de ' + N(esc) + ' en el intento ' + e.mejorIntento +
         '. Con esa nota ya no necesitas más intentos.';
       btn.hidden = true;
+    } else if (e.motivo === 'vencido') {
+      av.className = 'aviso alerta'; tit.textContent = 'El plazo terminó';
+      p.textContent = 'La fecha límite para presentar esta autoevaluación fue el ' + Api.fechaLarga(e.fechaLimite) + '. ' +
+        (tieneNota ? 'Tu mejor nota fue ' + N(e.mejorNota) + ' de ' + N(esc) + '. ' : '') + 'Si necesitas otra oportunidad, habla con tu docente.';
+      btn.hidden = true;
     } else if (e.motivo === 'agotado') {
       av.className = 'aviso alerta'; tit.textContent = 'Usaste todos tus intentos';
       p.textContent = (tieneNota ? 'Tu mejor nota fue ' + N(e.mejorNota) + ' de ' + N(esc) + '. ' : '') +
@@ -292,7 +296,8 @@
       var ultimo = e.restantes === 1;
       av.className = 'aviso' + (ultimo ? ' alerta' : '');
       tit.textContent = ultimo ? 'Este es tu último intento' : 'Tienes ' + e.restantes + ' ' + plural(e.restantes, 'intento disponible', 'intentos disponibles');
-      p.textContent = 'Necesitas ' + N(min) + ' de ' + N(esc) + ' para aprobar. El intento se cuenta desde que pulsas Comenzar en la página siguiente.';
+      p.textContent = 'Necesitas ' + N(min) + ' de ' + N(esc) + ' para aprobar. El intento se cuenta desde que pulsas Comenzar en la página siguiente.' +
+        (e.fechaLimite ? ' Fecha límite: ' + Api.fechaLarga(e.fechaLimite) + '.' : '');
       btn.textContent = 'Ir a la autoevaluación';
     }
     $('acciones').hidden = btn.hidden;
@@ -316,7 +321,13 @@
 
   /* ---------- arranque: si ya hay sesión (p. ej. al volver de un artefacto) ---------- */
   var previa = Api.leerSesion();
-  if (previa && previa.token && previa.asignaturas) { S = previa; pintarMaterias(); }
+  if (previa && previa.token && previa.asignaturas) {
+    S = previa; pintarMaterias();
+    // ¿La sesión sigue vigente? Si el docente actualizó el sitio desde la hoja, se pide ingresar de nuevo para ver los datos al día.
+    Api.llamar('ping', { token: S.token }).then(function (r) {
+      if (r && r.codigo === 'SESION_EXPIRADA') { Api.borrarSesion(); S = null; ver('vistaLogin', 1, null); mostrarError($('errLogin'), 'Actualizamos la información. Ingresa de nuevo con tu documento.'); }
+    });
+  }
   else {
     ver('vistaLogin', 1, null);
     var aviso = Api.tomarAviso();

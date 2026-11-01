@@ -69,20 +69,29 @@
   var LOGO_ENPCS = 'https://i.imgur.com/3AR6IOR.png';
   function pintarLogos(cont, prefijo) {
     var C = window.CONFIG || {};
+    // El primer logo va a la izquierda del título y el segundo a la derecha.
     [['Logo de la Institución Educativa CEINAR', C.LOGO_CEINAR || LOGO_CEINAR, prefijo + 'assets/logo-ceinar.png'],
-     ['Logo del blog EnPCs', C.LOGO_ENPCS || LOGO_ENPCS, prefijo + 'assets/logo-enpcs.png']].forEach(function (l) {
+     ['Logo del blog EnPCs', C.LOGO_ENPCS || LOGO_ENPCS, prefijo + 'assets/logo-enpcs.png']].forEach(function (l, i) {
       var chip = document.createElement('span'); chip.className = 'logo-chip';
       var img = document.createElement('img'); img.alt = l[0];
       img.addEventListener('error', function () {
         if (!img.dataset.f && img.getAttribute('src') !== l[2]) { img.dataset.f = '1'; img.src = l[2]; }
-        else if (chip.parentNode) chip.parentNode.removeChild(chip);
+        else chip.style.visibility = 'hidden';        // se oculta pero conserva su lugar para que el título siga centrado
       });
-      img.src = l[1]; chip.appendChild(img); cont.appendChild(chip);
+      img.src = l[1]; chip.appendChild(img);
+      if (i === 0) cont.insertBefore(chip, cont.firstChild); else cont.appendChild(chip);
     });
   }
 
+  /* "2026-11-21" → "21 de noviembre de 2026" */
+  function fechaLarga(iso) {
+    var p = String(iso || '').split('-'); if (p.length !== 3) return String(iso || '');
+    var M = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+    return Number(p[2]) + ' de ' + M[Number(p[1]) - 1] + ' de ' + p[0];
+  }
+
   window.Api = {
-    llamar: llamar, nota: nota, pintarRegla: pintarRegla, pintarLogos: pintarLogos,
+    llamar: llamar, nota: nota, pintarRegla: pintarRegla, pintarLogos: pintarLogos, fechaLarga: fechaLarga,
     leerSesion: function () { return leer(CLAVE); },
     guardarSesion: function (s) { return guardar(CLAVE, s); },
     borrarSesion: function () { borrar(CLAVE); },

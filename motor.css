@@ -4,9 +4,9 @@
    ============================================================ */
 
 .cabecera.compacta { padding-bottom: 40px; }
-.cabecera.compacta h1 { font-size: clamp(28px, 6vw, 40px); }
-.cabecera.compacta .marcas { margin-bottom: 14px; }
-.cabecera.compacta .marcas .logo-chip { width: 46px; height: 46px; }
+.cabecera.compacta .fila-titulo h1 { font-size: clamp(22px, 5.4vw, 38px); }
+.cabecera.compacta .fila-titulo { margin-bottom: 14px; }
+.cabecera.compacta .logo-chip { width: 52px; height: 52px; }
 .cabecera.compacta .quien { font-size: 16.5px; }
 .cabecera.compacta + main { margin-top: -22px; }
 .cargando-pagina { padding: 40px 16px; text-align: center; color: var(--ink-soft); }
@@ -129,3 +129,4 @@ h3.sub { font-size: 22px; font-weight: 800; margin-top: 30px; }
 .bub.cerrada { opacity: .55; }
 .bub[disabled] { cursor: default; }
 @media (prefers-reduced-motion: reduce) { .crono-barra > div { transition: none; } }
+
