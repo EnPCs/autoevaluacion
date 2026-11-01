@@ -34,11 +34,11 @@
 .t-cab { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
 .t-num { font-family: var(--f-display); font-weight: 800; font-size: 20px; }
 .tag { display: inline-block; background: var(--brand-tint); color: var(--brand-deep); font-size: 14px; font-weight: 700; padding: 3px 11px; border-radius: 999px; }
-.apoyo { margin-top: 16px; border-left: 4px solid var(--rule); background: #F7F8FD; border-radius: 0 10px 10px 0; padding: 10px 14px; }
+.apoyo { margin-top: 16px; border-left: 4px solid var(--rule); background: #FBF8EE; border-radius: 0 10px 10px 0; padding: 10px 14px; }
 .apoyo summary { cursor: pointer; font-weight: 700; color: var(--ink-soft); }
 .apoyo .pre { margin-top: 8px; white-space: pre-line; max-width: 66ch; }
 .enun { font-family: var(--f-body); font-weight: 700; font-size: 20px; line-height: 1.4; margin-top: 18px; max-width: 62ch; white-space: pre-line; }
-.enun code, .txt code, .rev-enun code { font-family: ui-monospace, Menlo, Consolas, monospace; background: #EEF0F8; padding: 1px 6px; border-radius: 5px; font-size: .92em; }
+.enun code, .txt code, .rev-enun code { font-family: ui-monospace, Menlo, Consolas, monospace; background: #EFF4EE; padding: 1px 6px; border-radius: 5px; font-size: .92em; }
 fieldset.opciones { border: 0; margin: 18px 0 0; padding: 0; display: grid; gap: 10px; }
 .opcion {
   position: relative; display: grid; grid-template-columns: 34px 1fr; gap: 12px; align-items: start;
