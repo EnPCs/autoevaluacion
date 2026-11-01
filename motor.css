@@ -107,3 +107,25 @@ h3.sub { font-size: 22px; font-weight: 800; margin-top: 30px; }
 .rev-estado.sin { color: var(--warn); }
 
 .ir-envio { margin: 14px 0 0; text-align: center; }
+
+/* ---------- nombre, tema y tiempo por pregunta ---------- */
+.cabecera .estudiante { margin: 10px 0 0; font-size: 17px; font-weight: 700; color: #fff; }
+.cabecera .estudiante .et, .tema-linea .et {
+  display: inline-block; background: var(--brand-tint); color: var(--brand-deep); font-size: 13px; font-weight: 800;
+  padding: 2px 9px; border-radius: 999px; margin-right: 4px; letter-spacing: .02em; text-transform: uppercase;
+}
+.cabecera .estudiante .et { background: rgba(255,255,255,.22); color: inherit; }
+.barra-fija .b-nombre { font-weight: 700; color: var(--ink); max-width: 100%; overflow-wrap: anywhere; }
+.tema-linea { margin: 8px 0 0; font-weight: 700; font-size: 18px; color: var(--brand-deep); }
+.crono { margin-bottom: 16px; padding: 10px 14px; border: 2px solid var(--rule); border-radius: 12px; background: #fff; }
+.crono-fila { display: flex; justify-content: space-between; gap: 10px; font-size: 15px; color: var(--ink-soft); }
+.crono-fila strong { font: 800 22px var(--f-display); color: var(--ink); font-variant-numeric: tabular-nums; }
+.crono-barra { height: 8px; border-radius: 4px; background: var(--brand-tint); margin-top: 8px; overflow: hidden; }
+.crono-barra > div { height: 100%; width: 100%; background: var(--brand); border-radius: 4px; transition: width 1s linear; }
+.crono.poco { border-color: var(--bad); background: var(--bad-bg); }
+.crono.poco .crono-fila strong { color: var(--bad); }
+.crono.poco .crono-barra > div { background: var(--bad); }
+.aviso-tiempo { margin: 0 0 12px; padding: 9px 12px; border-radius: 10px; background: #FFF6D6; border: 2px solid var(--mark); font-weight: 700; }
+.bub.cerrada { opacity: .55; }
+.bub[disabled] { cursor: default; }
+@media (prefers-reduced-motion: reduce) { .crono-barra > div { transition: none; } }

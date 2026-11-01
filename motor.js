@@ -62,7 +62,7 @@
   var SHELL =
     '<div class="barra-fija" id="barraFija" hidden>' +
       '<div class="interior"><span class="materia-b" id="bMateria"></span>' +
-      '<span class="datos"><span id="bIntento"></span><span id="bProg"></span><span>Tiempo <strong id="bTiempo">00:00</strong></span></span></div>' +
+      '<span class="datos"><span class="b-nombre" id="bNombre"></span><span id="bIntento"></span><span id="bProg"></span><span>Tiempo <strong id="bTiempo">00:00</strong></span></span></div>' +
       '<div class="medidor" aria-hidden="true"><div id="bMedidor"></div></div>' +
     '</div>' +
     '<header class="cabecera compacta"><div class="envoltura">' +
@@ -140,12 +140,18 @@
     $('app').innerHTML = SHELL;
     $('hTitulo').textContent = 'Autoevaluación de ' + A.titulo;
     $('hSub').textContent = 'Grados ' + A.grados + ', periodo ' + A.periodo;
+    var quien = el('p', 'estudiante');
+    quien.appendChild(el('span', 'et', ES_DOC ? 'Docente' : 'Estudiante'));
+    quien.appendChild(document.createTextNode(' ' + (S && S.nombre ? S.nombre : '') + (S && S.grupo && !ES_DOC ? ' · Grupo ' + S.grupo : '')));
+    $('hSub').parentNode.appendChild(quien);
+    $('bNombre').textContent = S && S.nombre ? S.nombre : '';
     $('bMateria').textContent = A.titulo + ', periodo ' + A.periodo;
 
     $('btnIniciar').addEventListener('click', onIniciar);
     $('btnAnt').addEventListener('click', function () { ir(intento.actual - 1); });
     $('btnSig').addEventListener('click', function () {
-      if (intento.actual === intento.preguntas.length - 1) irEnvio(); else ir(intento.actual + 1);
+      if (limite()) cerrarYSeguir();
+      else if (intento.actual === intento.preguntas.length - 1) irEnvio(); else ir(intento.actual + 1);
     });
     $('btnRevisar').addEventListener('click', irEnvio);
     $('btnSeguir').addEventListener('click', function () { mostrar('vQuiz'); pintarPregunta(); });
@@ -208,6 +214,9 @@
         ? 'Al terminar verás tu nota y tu resultado por tema. Las respuestas correctas se muestran cuando apruebas o usas todos tus intentos.'
         : 'Al terminar verás tu nota y tu resultado por tema. Las respuestas correctas no se muestran en tu grado.'
     ];
+    if (e.segundosPorPregunta > 0) {
+      items.splice(3, 0, 'Cada pregunta tiene ' + e.segundosPorPregunta + ' segundos. Cuando el tiempo se acaba, pasas a la siguiente y no puedes volver a la anterior.');
+    }
     if (e.ilimitado) items.push('Modo docente: puedes probar cuantas veces quieras y no se escribe nota en la lista de estudiantes.');
     items.forEach(function (t) { l.appendChild(el('li', '', t)); });
   }
@@ -248,7 +257,7 @@
     var respondidas = Object.keys(intento.respuestas).length, total = intento.preguntas.length, btn = $('btnIniciar');
     $('tIntro').textContent = 'Tienes un intento en curso';
     estado = { ilimitado: intento.ilimitado, usados: intento.numero, maxIntentos: intento.maxIntentos,
-               notaMinima: intento.notaMinima, escala: intento.escala, verClave: intento.verClave };
+               notaMinima: intento.notaMinima, escala: intento.escala, verClave: intento.verClave, segundosPorPregunta: intento.seg || 0 };
     reglas(estado); fichas($('introIntentos'), estado);
     $('introAviso').className = 'aviso';
     $('introAvisoT').textContent = 'Intento ' + intento.numero + ': ' + respondidas + ' de ' + total + ' respondidas';
@@ -276,6 +285,7 @@
         intento = {
           artefactoId: A.id, dueno: DUENO, intentoId: r.intentoId, numero: r.numeroIntento, maxIntentos: r.maxIntentos,
           ilimitado: !!r.ilimitado, preguntas: r.preguntas, respuestas: {}, actual: 0, inicioMs: Date.now(),
+          seg: r.segundosPorPregunta !== undefined ? Number(r.segundosPorPregunta) || 0 : (estado.segundosPorPregunta || 0), ini: Date.now(), cerradas: {},
           notaMinima: estado.notaMinima, escala: estado.escala, verClave: r.verClave !== undefined ? !!r.verClave : !!estado.verClave
         };
         if (!Api.guardarIntento(intento)) {
@@ -288,18 +298,67 @@
 
   function entrarQuiz() {
     $('bIntento').textContent = intento.ilimitado ? 'Modo docente' : 'Intento ' + intento.numero + ' de ' + intento.maxIntentos;
+    if (!intento.cerradas) intento.cerradas = {};
+    if (!intento.ini) intento.ini = Date.now();
     iniciarReloj();
+    // Si la pestaña estuvo cerrada, las preguntas cuyo tiempo se agotó ya quedaron atrás.
+    var antes = intento.actual;
+    if (limite() && actualizarTiempoPregunta(true)) return;
     mostrar('vQuiz');
     pintarPregunta(true);
+    if (limite() && intento.actual !== antes) aviso('Mientras no estabas, se acabó el tiempo de ' + (intento.actual - antes === 1 ? 'una pregunta' : (intento.actual - antes) + ' preguntas') + '. Continúas en la pregunta ' + (intento.actual + 1) + '.');
   }
+
+  function limite() { return (intento && intento.seg > 0) ? intento.seg : 0; }
 
   function iniciarReloj() {
     if (timer) clearInterval(timer);
     var tick = function () {
       var s = Math.max(0, Math.floor((Date.now() - intento.inicioMs) / 1000));
       $('bTiempo').textContent = String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+      if (limite()) actualizarTiempoPregunta(false);
     };
     tick(); timer = setInterval(tick, 1000);
+  }
+
+  /* Tiempo por pregunta: cada pregunta tiene una sola ventana de `seg` segundos desde que se muestra por primera vez.
+     Al agotarse se cierra, se pasa a la siguiente y no se puede volver. Con la última, se va a la pantalla de envío.
+     La hora de inicio se guarda en el intento: recargar la página no reinicia el cronómetro. */
+  function actualizarTiempoPregunta(alEntrar) {
+    var ms = limite() * 1000, pasadas = Math.floor((Date.now() - intento.ini) / ms), ultima = intento.preguntas.length - 1;
+    if (intento.cerradas[intento.preguntas[ultima].id]) return false;     // ya no queda ninguna pregunta abierta
+    if (pasadas > 0) {
+      var vista = !$('vQuiz').hidden, envio = !$('vEnvio').hidden, huboCambio = false;
+      while (pasadas > 0 && intento.actual <= ultima) {
+        intento.cerradas[intento.preguntas[intento.actual].id] = true; huboCambio = true;
+        intento.ini += ms; pasadas--;
+        if (intento.actual === ultima) { intento.actual = ultima + 1; break; }
+        intento.actual++;
+      }
+      if (huboCambio) guardar();
+      if (intento.actual > ultima) {                     // se acabó el tiempo de la última pregunta
+        intento.actual = ultima;
+        if (!envio) irEnvio(); else $('btnSeguir').hidden = true;
+        return true;
+      }
+      if (vista) { pintarPregunta(); aviso('Se acabó el tiempo de la pregunta anterior. Pasaste a la siguiente.'); }
+    }
+    pintarCrono();
+    return false;
+  }
+
+  function pintarCrono() {
+    var c = $('crono'); if (!c || !limite()) return;
+    var resta = Math.max(0, Math.ceil((intento.ini + limite() * 1000 - Date.now()) / 1000));
+    $('cronoNum').textContent = resta + ' s';
+    $('cronoBarra').style.width = (100 * resta / limite()) + '%';
+    c.classList.toggle('poco', resta <= 10);
+  }
+
+  function aviso(msg) {
+    var a = $('avisoTiempo'); if (!a) return;
+    a.textContent = msg; a.hidden = false;
+    clearTimeout(aviso.t); aviso.t = setTimeout(function () { a.hidden = true; }, 6000);
   }
 
   /* ===================== preguntas ===================== */
@@ -312,7 +371,7 @@
     var b = $('burbujas').children;
     for (var i = 0; i < b.length; i++) {
       var p = intento.preguntas[i];
-      b[i].className = 'bub' + (intento.respuestas[p.id] ? ' resp' : '') + (i === intento.actual ? ' actual' : '');
+      b[i].className = 'bub' + (intento.respuestas[p.id] ? ' resp' : '') + (i === intento.actual ? ' actual' : '') + (intento.cerradas && intento.cerradas[p.id] ? ' cerrada' : '');
       b[i].setAttribute('aria-label', 'Pregunta ' + (i + 1) + (intento.respuestas[p.id] ? ', respondida' : ', sin responder') + (i === intento.actual ? ', actual' : ''));
     }
   }
@@ -322,11 +381,20 @@
     intento.preguntas.forEach(function (p, i) {
       var b = el('button', 'bub', String(i + 1)); b.type = 'button';
       b.addEventListener('click', function () { ir(i); });
+      if (limite()) b.disabled = true;
       c.appendChild(b);
     });
   }
 
+  function cerrarYSeguir() {
+    intento.cerradas[intento.preguntas[intento.actual].id] = true;
+    if (intento.actual === intento.preguntas.length - 1) { guardar(); irEnvio(); return; }
+    intento.actual++; intento.ini = Date.now(); guardar(); pintarPregunta();
+    $('tarjeta').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
   function ir(i) {
+    if (limite()) return;                                   // con tiempo por pregunta no se vuelve atrás
     if (i < 0 || i >= intento.preguntas.length) return;
     intento.actual = i; guardar(); pintarPregunta();
     $('tarjeta').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -338,10 +406,18 @@
     var ant = i > 0 ? intento.preguntas[i - 1] : null;
     var t = $('tarjeta'); t.innerHTML = '';
 
+    var av = el('p', 'aviso-tiempo', ''); av.id = 'avisoTiempo'; av.hidden = true; av.setAttribute('role', 'status'); t.appendChild(av);
+    if (limite()) {
+      var cr = el('div', 'crono'); cr.id = 'crono';
+      var fila = el('div', 'crono-fila'); fila.appendChild(el('span', '', 'Tiempo para esta pregunta'));
+      var num = el('strong', '', ''); num.id = 'cronoNum'; fila.appendChild(num); cr.appendChild(fila);
+      var bar = el('div', 'crono-barra'); var rel = el('div', ''); rel.id = 'cronoBarra'; bar.appendChild(rel); cr.appendChild(bar);
+      t.appendChild(cr);
+    }
     var cab = el('div', 't-cab');
     cab.appendChild(el('span', 't-num', 'Pregunta ' + (i + 1) + ' de ' + intento.preguntas.length));
-    if (p.tema && p.tema !== 'General') cab.appendChild(el('span', 'tag', p.tema));
     t.appendChild(cab);
+    var tm = el('p', 'tema-linea'); tm.appendChild(el('span', 'et', 'Tema')); tm.appendChild(document.createTextNode(' ' + (p.tema || 'General'))); t.appendChild(tm);
 
     if (p.contexto) {
       var d = el('details', 'apoyo'); d.open = !ant || ant.contexto !== p.contexto;
@@ -374,7 +450,9 @@
     function mostrarBorrar() { bor.hidden = !intento.respuestas[p.id]; }
     mostrarBorrar();
 
-    $('btnAnt').disabled = (i === 0);
+    $('btnAnt').hidden = !!limite(); $('btnAnt').disabled = (i === 0);
+    $('hoja').open = $('hoja').open && !limite();
+    if (limite()) pintarCrono();
     $('btnSig').textContent = (i === intento.preguntas.length - 1) ? 'Revisar y enviar' : 'Siguiente';
     actualizarProgreso();
   }
@@ -384,7 +462,7 @@
     var total = intento.preguntas.length, n = respondidas(), faltan = total - n;
     $('resumenTxt').textContent = 'Respondiste ' + n + ' de ' + total + ' preguntas.';
     var bf = $('bloqueFaltan'), fl = $('faltan'); fl.innerHTML = '';
-    bf.hidden = faltan === 0;
+    bf.hidden = faltan === 0 || !!limite();
     intento.preguntas.forEach(function (p, i) {
       if (intento.respuestas[p.id]) return;
       var b = el('button', 'bub', String(i + 1)); b.type = 'button';
@@ -396,6 +474,9 @@
       : 'Tu intento ' + (intento.ilimitado ? '' : 'número ' + intento.numero + ' ') + 'se registrará con la nota que obtengas.';
     $('btnEnviar').textContent = faltan > 0 ? 'Enviar con ' + faltan + ' sin responder' : 'Enviar mi intento';
     $('btnEnviar').disabled = false; mostrarErr($('errEnvio'), '');
+    // con tiempo por pregunta ya no hay a dónde volver si se agotó la última
+    var ult = intento.preguntas[intento.preguntas.length - 1];
+    $('btnSeguir').hidden = !!(limite() && intento.cerradas && intento.cerradas[ult.id]);
     mostrar('vEnvio', 'tEnvio');
   }
 
