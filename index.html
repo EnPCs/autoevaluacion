@@ -231,7 +231,11 @@
     fila(rep, 'Inasistencia acumulada', r.inasistencia !== '' ? r.inasistencia : 'Aún sin definir', true);
     var t = parseFloat(String(r.inasistencia).replace(',', '.')) || 0;
     var c = document.createElement('div');
-    if (t === 0) {
+    var sinDatos = r.inasistencia === '' && r.informatica === '' && r.estadistica === '' && r.artes === '';
+    if (sinDatos) {
+      c.className = 'comentario neutro';
+      c.innerHTML = '<p><strong>Aún sin definir</strong></p>';
+    } else if (t === 0) {
       c.className = 'comentario ok';
       c.innerHTML = '<p><strong>✅ Felicitaciones</strong> por su asistencia permanente a la clase durante el período.</p>';
     } else if (t === 1 || t === 2) {

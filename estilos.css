@@ -229,3 +229,5 @@ body.portal .panel { background: var(--info-bg); border: 1px solid #F5E3C5; bord
 .tarjeta-motiva h2 { font-size: clamp(20px, 5vw, 24px); font-weight: 400; color: #1E5631; margin-top: 6px; letter-spacing: 0; }
 .tarjeta-motiva p { margin-top: 8px; font-size: 15.5px; line-height: 1.65; color: #2D3E3A; }
 .tarjeta-motiva .invita { margin-top: 10px; }
+
+.comentario.neutro { background: #F1EFE8; border-color: var(--ink-soft); color: var(--ink); }
