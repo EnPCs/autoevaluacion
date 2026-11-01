@@ -132,7 +132,7 @@
   }
   function mostrarError(el, msg) { el.textContent = msg; el.hidden = !msg; }
   function salir(mensaje) {
-    Api.borrarSesion(); S = null; materiaActual = null; estadoActual = null;
+    Api.borrarSesion(); Api.borrarIntento(); S = null; materiaActual = null; estadoActual = null;
     $('doc').value = '';
     mostrarError($('errLogin'), mensaje || '');
     ver('vistaLogin', 1, mensaje ? null : 'tLogin');
@@ -262,7 +262,13 @@
     // mensaje y botón
     var av = $('aviso'), btn = $('btnComenzar'), tit = $('avisoT'), p = $('avisoP');
     btn.hidden = false; btn.disabled = false;
-    if (!e.disponible) {
+    var g = Api.leerIntento();
+    var enCurso = g && g.artefactoId === e.artefactoId && g.dueno === (S.nombre + '|' + S.grupo) && g.preguntas;
+    if (enCurso) {
+      av.className = 'aviso alerta'; tit.textContent = 'Tienes un intento en curso';
+      p.textContent = 'Respondiste ' + Object.keys(g.respuestas).length + ' de ' + g.preguntas.length + ' preguntas. Continúa donde ibas.';
+      btn.textContent = 'Continuar mi intento';
+    } else if (!e.disponible) {
       av.className = 'aviso neutro'; tit.textContent = 'Todavía no está publicada';
       p.textContent = 'La autoevaluación de esta asignatura para tus grados aún no está disponible. Vuelve a intentarlo más tarde o pregunta a tu docente.';
       btn.hidden = true;
@@ -279,13 +285,13 @@
     } else if (e.ilimitado) {
       av.className = 'aviso'; tit.textContent = 'Prueba la autoevaluación';
       p.textContent = 'Cada intento queda registrado con el rol Docente. La nota mínima para aprobar es ' + N(min) + ' de ' + N(esc) + '.';
-      btn.textContent = 'Comenzar prueba';
+      btn.textContent = 'Ir a la autoevaluación';
     } else {
       var ultimo = e.restantes === 1;
       av.className = 'aviso' + (ultimo ? ' alerta' : '');
       tit.textContent = ultimo ? 'Este es tu último intento' : 'Tienes ' + e.restantes + ' ' + plural(e.restantes, 'intento disponible', 'intentos disponibles');
-      p.textContent = 'Necesitas ' + N(min) + ' de ' + N(esc) + ' para aprobar. El intento se cuenta desde que comienzas, aunque cierres la página.';
-      btn.textContent = 'Comenzar intento ' + (e.usados + 1) + ' de ' + max;
+      p.textContent = 'Necesitas ' + N(min) + ' de ' + N(esc) + ' para aprobar. El intento se cuenta desde que pulsas Comenzar en la página siguiente.';
+      btn.textContent = 'Ir a la autoevaluación';
     }
     $('acciones').hidden = btn.hidden;
     $('contenidoEstado').hidden = false;
@@ -308,7 +314,12 @@
 
   /* ---------- arranque: si ya hay sesión (p. ej. al volver de un artefacto) ---------- */
   var previa = Api.leerSesion();
-  if (previa && previa.token && previa.asignaturas) { S = previa; pintarMaterias(); } else { ver('vistaLogin', 1, null); }
+  if (previa && previa.token && previa.asignaturas) { S = previa; pintarMaterias(); }
+  else {
+    ver('vistaLogin', 1, null);
+    var aviso = Api.tomarAviso();
+    if (aviso) mostrarError($('errLogin'), aviso);
+  }
 })();
 </script>
 </body>
