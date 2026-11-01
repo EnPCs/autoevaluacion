@@ -212,3 +212,20 @@ input:focus, select:focus { border-color: var(--brand); outline: none; box-shado
 .comentario.mal { background: #FCE8E6; border-color: #EA4335; color: #3C0A00; }
 .estado-notas { margin-top: 14px; }
 .cabecera .fila-titulo h1 { color: var(--gold); }
+
+/* ---------- portal (index): encabezado y tarjetas como en el blog ---------- */
+.cab-ceinar { padding-bottom: 50px; }
+.cab-ceinar .fila-titulo { margin-bottom: 10px; align-items: center; }
+.cab-ceinar .centro-cab { flex: 1; text-align: center; }
+.cab-ceinar h1 { font-size: clamp(24px, 6vw, 36px); color: var(--gold); margin: 0; }
+.cab-ceinar .sub-cab { color: #D4EDC9; font-size: 14px; margin: 5px 0 10px; }
+.cab-ceinar .pildora-cab { display: inline-block; background: rgba(255,255,255,.12); border: 1px solid rgba(255,215,0,.25); border-radius: 60px; color: #F8F3E0; font-size: 12px; padding: 4px 16px; }
+.cab-ceinar .lema { margin: 12px 0 0; }
+body.portal .panel { background: var(--info-bg); border: 1px solid #F5E3C5; border-left: 8px solid var(--mark); border-radius: 20px; }
+
+/* ---------- tarjeta de presentación entre los pasos y el ingreso ---------- */
+.tarjeta-motiva { background: var(--info-bg); border: 1px solid #F5E3C5; border-left: 8px solid var(--mark); border-radius: 20px; padding: 16px 20px; margin-bottom: 18px; text-align: center; }
+.tarjeta-motiva .periodo-cab { display: inline-block; background: var(--mark); color: #1E2A3E; font-size: 14px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; padding: 3px 12px; }
+.tarjeta-motiva h2 { font-size: clamp(20px, 5vw, 24px); font-weight: 400; color: #1E5631; margin-top: 6px; letter-spacing: 0; }
+.tarjeta-motiva p { margin-top: 8px; font-size: 15.5px; line-height: 1.65; color: #2D3E3A; }
+.tarjeta-motiva .invita { margin-top: 10px; }

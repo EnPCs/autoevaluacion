@@ -10,13 +10,18 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&display=swap">
 <link rel="stylesheet" href="estilos.css">
 </head>
-<body>
+<body class="portal">
 
-<header class="cabecera">
+<header class="cabecera cab-ceinar">
   <div class="envoltura">
-    <div class="fila-titulo" id="filaTitulo"><h1>Autoevaluación</h1></div>
-    <p class="quien"><strong id="txtInstitucion">Institución Educativa CEINAR</strong><br>Docente: <span id="txtDocente">Arnold Torres B.</span><br><span id="lineaEstudiante" hidden>Estudiante: <strong id="txtEstudiante"></strong><span id="txtGrupo"></span></span></p>
-    <p class="lema">«¡Por la humanización del hombre, la Educación Artística!»</p>
+    <div class="fila-titulo" id="filaTitulo">
+      <div class="centro-cab">
+        <h1>I.E. "CEINAR"</h1>
+        <div class="sub-cab">Jornada única · Resolución 080 del 25 de marzo de 2003</div>
+        <div class="pildora-cab">NIT. 891104948-7 · DANE 141001004061</div>
+        <p class="lema">«¡Por la humanización del hombre, la Educación Artística!»</p>
+      </div>
+    </div>
   </div>
 </header>
 
@@ -28,6 +33,14 @@
       <li id="p2"><span class="n">2</span>Elige asignatura</li>
       <li id="p3"><span class="n">3</span>Revisa tus intentos</li>
     </ol>
+
+    <section class="tarjeta-motiva" aria-label="Presentación">
+      <div class="periodo-cab">Tercer periodo</div>
+      <h2>⚡ ¡Seguimos con las pilas recargadas!</h2>
+      <p>Te invitamos a presentar tu <strong>autoevaluación de forma honesta y responsable</strong>, un momento clave para reflexionar sobre tu proceso. Este ejercicio te permitirá <strong>cualificar tu nivel de competencia adquirido</strong> y valorar tu crecimiento personal y académico. Además, al finalizar, podrás <strong>consultar tus resultados finales</strong> de este periodo.</p>
+      <p class="invita">Invita su profesor: <strong id="txtDocente">ARNOLD TORRES BARÓN</strong>.</p>
+      <p class="invita" id="lineaEstudiante" hidden>Estudiante: <strong id="txtEstudiante"></strong><span id="txtGrupo"></span></p>
+    </section>
 
     <noscript><div class="error">Esta página necesita JavaScript. Actívalo en tu navegador para continuar.</div></noscript>
 
@@ -116,12 +129,7 @@
 (function () {
   var $ = function (id) { return document.getElementById(id); };
   var C = window.CONFIG || {};
-  $('txtInstitucion').textContent = C.INSTITUCION || '';
-  // "Arnold Torres Barón" → "Arnold Torres B." (se puede fijar con DOCENTE_CORTO en config.js)
-  $('txtDocente').textContent = C.DOCENTE_CORTO || (function (n) {
-    var p = String(n || '').trim().split(/\s+/);
-    return p.length >= 3 ? p.slice(0, -1).join(' ') + ' ' + p[p.length - 1].charAt(0).toUpperCase() + '.' : p.join(' ');
-  })(C.DOCENTE);
+  $('txtDocente').textContent = String(C.DOCENTE || 'Arnold Torres Barón').toUpperCase();
   Api.pintarLogos($('filaTitulo'), '');
 
   var GLIFOS = {
