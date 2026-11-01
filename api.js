@@ -63,8 +63,25 @@
     }); });
   }
 
+  /* Logos de la institución y del blog. Se pueden cambiar en config.js (LOGO_CEINAR, LOGO_ENPCS);
+     si la imagen no carga se prueba la carpeta assets/ y, si tampoco está, el recuadro se oculta solo. */
+  var LOGO_CEINAR = 'https://i.imgur.com/6sV8Qck.png';
+  function pintarLogos(cont, prefijo) {
+    var C = window.CONFIG || {};
+    [['Logo de la Institución Educativa CEINAR', C.LOGO_CEINAR || LOGO_CEINAR, prefijo + 'assets/logo-ceinar.png'],
+     ['Logo del blog EnPCs', C.LOGO_ENPCS || (prefijo + 'assets/logo-enpcs.png'), prefijo + 'assets/logo-enpcs.png']].forEach(function (l) {
+      var chip = document.createElement('span'); chip.className = 'logo-chip';
+      var img = document.createElement('img'); img.alt = l[0];
+      img.addEventListener('error', function () {
+        if (!img.dataset.f && img.getAttribute('src') !== l[2]) { img.dataset.f = '1'; img.src = l[2]; }
+        else if (chip.parentNode) chip.parentNode.removeChild(chip);
+      });
+      img.src = l[1]; chip.appendChild(img); cont.appendChild(chip);
+    });
+  }
+
   window.Api = {
-    llamar: llamar, nota: nota, pintarRegla: pintarRegla,
+    llamar: llamar, nota: nota, pintarRegla: pintarRegla, pintarLogos: pintarLogos,
     leerSesion: function () { return leer(CLAVE); },
     guardarSesion: function (s) { return guardar(CLAVE, s); },
     borrarSesion: function () { borrar(CLAVE); },

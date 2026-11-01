@@ -14,13 +14,9 @@
 
 <header class="cabecera">
   <div class="envoltura">
-    <!-- Logos: guarda los archivos en assets/ con estos nombres. Si no existen, el recuadro se oculta solo. -->
-    <div class="marcas">
-      <span class="logo-chip"><img src="assets/logo-ceinar.png" alt="Logo de la Institución Educativa CEINAR" onerror="this.parentNode.remove()"></span>
-      <span class="logo-chip"><img src="assets/logo-enpcs.png" alt="Logo del blog EnPCs" onerror="this.parentNode.remove()"></span>
-    </div>
+    <div class="marcas" id="marcas"></div>
     <h1>Autoevaluación</h1>
-    <p class="quien"><strong id="txtInstitucion">Institución Educativa CEINAR</strong><br>Docente <span id="txtDocente">Arnold Torres Barón</span></p>
+    <p class="quien"><strong id="txtInstitucion">Institución Educativa CEINAR</strong><br>Docente: <span id="txtDocente">Arnold Torres B.</span><br><span id="lineaEstudiante" hidden>Estudiante: <strong id="txtEstudiante"></strong></span></p>
   </div>
 </header>
 
@@ -105,7 +101,12 @@
   var $ = function (id) { return document.getElementById(id); };
   var C = window.CONFIG || {};
   $('txtInstitucion').textContent = C.INSTITUCION || '';
-  $('txtDocente').textContent = C.DOCENTE || '';
+  // "Arnold Torres Barón" → "Arnold Torres B." (se puede fijar con DOCENTE_CORTO en config.js)
+  $('txtDocente').textContent = C.DOCENTE_CORTO || (function (n) {
+    var p = String(n || '').trim().split(/\s+/);
+    return p.length >= 3 ? p.slice(0, -1).join(' ') + ' ' + p[p.length - 1].charAt(0).toUpperCase() + '.' : p.join(' ');
+  })(C.DOCENTE);
+  Api.pintarLogos($('marcas'), '');
 
   var GLIFOS = {
     informatica: '<svg class="glifo" viewBox="0 0 56 56" fill="none" aria-hidden="true"><rect x="6" y="9" width="44" height="30" rx="4" stroke="currentColor" stroke-width="3"/><path d="M20 49h16M28 39v10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M17 21l6 5-6 5M28 31h9" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -122,6 +123,8 @@
 
   /* ---------- navegación entre vistas ---------- */
   function ver(vista, paso, foco) {
+    $('lineaEstudiante').hidden = !(S && S.nombre && S.rol !== 'Docente' && vista !== 'vistaLogin');
+    if (S && S.nombre) $('txtEstudiante').textContent = S.nombre;
     ['vistaLogin', 'vistaMaterias', 'vistaEstado'].forEach(function (v) { $(v).hidden = (v !== vista); });
     [1, 2, 3].forEach(function (n) {
       var li = $('p' + n);
@@ -170,9 +173,8 @@
     var esDoc = S.rol === 'Docente';
     var primer = S.nombre.split(' ')[0];
     $('hola').innerHTML = '';
-    var st = document.createElement('strong'); st.textContent = S.nombre;
+    var st = document.createElement('strong'); st.textContent = esDoc ? 'Modo docente' : 'Grupo ' + S.grupo;
     $('hola').appendChild(st);
-    $('hola').appendChild(document.createTextNode(esDoc ? ', docente' : ', grupo ' + S.grupo));
     $('leadMaterias').textContent = esDoc
       ? 'Periodo ' + S.periodo.replace('P', '') + '. Elige una asignatura para revisar la autoevaluación.'
       : 'Periodo ' + S.periodo.replace('P', '') + '. Estas son las autoevaluaciones habilitadas para ti.';

@@ -62,14 +62,11 @@
   var SHELL =
     '<div class="barra-fija" id="barraFija" hidden>' +
       '<div class="interior"><span class="materia-b" id="bMateria"></span>' +
-      '<span class="datos"><span class="b-nombre" id="bNombre"></span><span id="bIntento"></span><span id="bProg"></span><span>Tiempo <strong id="bTiempo">00:00</strong></span></span></div>' +
+      '<span class="datos"><span id="bIntento"></span><span id="bProg"></span><span>Tiempo <strong id="bTiempo">00:00</strong></span></span></div>' +
       '<div class="medidor" aria-hidden="true"><div id="bMedidor"></div></div>' +
     '</div>' +
     '<header class="cabecera compacta"><div class="envoltura">' +
-      '<div class="marcas">' +
-        '<span class="logo-chip"><img src="../assets/logo-ceinar.png" alt="Logo de la Institución Educativa CEINAR" onerror="this.parentNode.remove()"></span>' +
-        '<span class="logo-chip"><img src="../assets/logo-enpcs.png" alt="Logo del blog EnPCs" onerror="this.parentNode.remove()"></span>' +
-      '</div>' +
+      '<div class="marcas" id="marcas"></div>' +
       '<h1 id="hTitulo"></h1><p class="quien" id="hSub"></p>' +
     '</div></header>' +
     '<main><div class="envoltura">' +
@@ -144,7 +141,7 @@
     quien.appendChild(el('span', 'et', ES_DOC ? 'Docente' : 'Estudiante'));
     quien.appendChild(document.createTextNode(' ' + (S && S.nombre ? S.nombre : '') + (S && S.grupo && !ES_DOC ? ' · Grupo ' + S.grupo : '')));
     $('hSub').parentNode.appendChild(quien);
-    $('bNombre').textContent = S && S.nombre ? S.nombre : '';
+    Api.pintarLogos($('marcas'), '../');
     $('bMateria').textContent = A.titulo + ', periodo ' + A.periodo;
 
     $('btnIniciar').addEventListener('click', onIniciar);
