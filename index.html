@@ -16,7 +16,7 @@
   <div class="envoltura">
     <div class="marcas" id="marcas"></div>
     <h1>Autoevaluación</h1>
-    <p class="quien"><strong id="txtInstitucion">Institución Educativa CEINAR</strong><br>Docente: <span id="txtDocente">Arnold Torres B.</span><br><span id="lineaEstudiante" hidden>Estudiante: <strong id="txtEstudiante"></strong></span></p>
+    <p class="quien"><strong id="txtInstitucion">Institución Educativa CEINAR</strong><br>Docente: <span id="txtDocente">Arnold Torres B.</span><br><span id="lineaEstudiante" hidden>Estudiante: <strong id="txtEstudiante"></strong><span id="txtGrupo"></span></span></p>
   </div>
 </header>
 
@@ -124,7 +124,7 @@
   /* ---------- navegación entre vistas ---------- */
   function ver(vista, paso, foco) {
     $('lineaEstudiante').hidden = !(S && S.nombre && S.rol !== 'Docente' && vista !== 'vistaLogin');
-    if (S && S.nombre) $('txtEstudiante').textContent = S.nombre;
+    if (S && S.nombre) { $('txtEstudiante').textContent = S.nombre; $('txtGrupo').textContent = S.grupo ? ' · Grupo ' + S.grupo : ''; }
     ['vistaLogin', 'vistaMaterias', 'vistaEstado'].forEach(function (v) { $(v).hidden = (v !== vista); });
     [1, 2, 3].forEach(function (n) {
       var li = $('p' + n);
@@ -173,8 +173,8 @@
     var esDoc = S.rol === 'Docente';
     var primer = S.nombre.split(' ')[0];
     $('hola').innerHTML = '';
-    var st = document.createElement('strong'); st.textContent = esDoc ? 'Modo docente' : 'Grupo ' + S.grupo;
-    $('hola').appendChild(st);
+    $('hola').hidden = !esDoc;                         // al estudiante el grupo ya se le muestra en el encabezado
+    if (esDoc) { var st = document.createElement('strong'); st.textContent = 'Modo docente'; $('hola').appendChild(st); }
     $('leadMaterias').textContent = esDoc
       ? 'Periodo ' + S.periodo.replace('P', '') + '. Elige una asignatura para revisar la autoevaluación.'
       : 'Periodo ' + S.periodo.replace('P', '') + '. Estas son las autoevaluaciones habilitadas para ti.';
